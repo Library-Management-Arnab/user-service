@@ -1,8 +1,6 @@
 package com.lms.us.rest.model.json;
 
-import java.util.List;
-
-import com.lms.us.rest.model.db.AccessGroup;
+import com.lms.us.rest.model.db.UserRight;
 
 import lombok.Data;
 
@@ -20,5 +18,5 @@ public class UserRegistrationJson {
 	private int pin;
 	private String contactNo;
 	private String displayName;
-	private List<AccessGroup> accessGroups;
+	private UserRight userRight;
 }

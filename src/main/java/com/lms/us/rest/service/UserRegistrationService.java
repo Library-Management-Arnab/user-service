@@ -10,9 +10,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.lms.svc.common.constants.ApplicationCommonConstants;
 import com.lms.us.rest.exception.NoSuchUserException;
-import com.lms.us.rest.model.db.AccessGroup;
 import com.lms.us.rest.model.db.LoginData;
 import com.lms.us.rest.model.db.UserRegistrationData;
+import com.lms.us.rest.model.db.UserRight;
 import com.lms.us.rest.model.json.UserRegistrationJson;
 import com.lms.us.rest.repository.UserRegistrationRepository;
 import com.lms.us.rest.transformer.UserTransformer;
@@ -56,12 +56,8 @@ public class UserRegistrationService {
 		loginService.updateLoginInfo(loginData);
 		
 		userRegData.setLoginData(loginData);
-		
-		List<AccessGroup> accessGroups = userRegData.getAccessGroups();
-		userRegData.setAccessGroups(null);
-		
+		//UserRight userRight = userRegData.getUserRight();
 		UserRegistrationData saved = userRegistrationRepository.save(userRegData);
-		saved.setAccessGroups(accessGroups);
 		
 		saved = userRegistrationRepository.save(saved);
 		

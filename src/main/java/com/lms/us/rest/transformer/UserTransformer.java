@@ -20,7 +20,7 @@ public class UserTransformer {
 		userRegistrationData.setPin(userJson.getPin());
 		userRegistrationData.setUserName(userJson.getUserName());
 		userRegistrationData.setUserId(userJson.getUserId());
-		userRegistrationData.setAccessGroups(userJson.getAccessGroups());
+		userRegistrationData.setUserRight(userJson.getUserRight());
 		return userRegistrationData;
 	}
 
@@ -46,7 +46,7 @@ public class UserTransformer {
 //		userAccessType.setDescription(userRoles.getDescription());
 //		userJson.setUserAccessType(userAccessType);
 		
-		userJson.setAccessGroups(userRegistrationData.getAccessGroups());
+		userJson.setUserRight(userRegistrationData.getUserRight());
 		return userJson;
 	}
 	public static LoginData userJsonToUserLoginData(UserRegistrationJson userJson) {
