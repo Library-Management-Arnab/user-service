@@ -1,6 +1,7 @@
 package com.lms.us.rest.model.json;
 
 import com.lms.us.rest.model.db.UserRight;
+import com.lms.us.rest.model.db.UserStatus;
 
 import lombok.Data;
 
@@ -19,4 +20,5 @@ public class UserRegistrationJson {
 	private String contactNo;
 	private String displayName;
 	private UserRight userRight;
+	private UserStatus status;
 }

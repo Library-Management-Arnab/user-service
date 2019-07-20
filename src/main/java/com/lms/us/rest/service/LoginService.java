@@ -6,9 +6,11 @@ import org.springframework.stereotype.Service;
 
 import com.lms.svc.common.crypto.CryptographyUtil;
 import com.lms.svc.common.exception.InvalidCredentialsException;
+import com.lms.svc.common.model.LoginResponse;
 import com.lms.us.rest.model.db.LoginData;
 import com.lms.us.rest.model.json.LoginJson;
 import com.lms.us.rest.repository.LoginRepository;
+import com.lms.us.rest.transformer.LoginDataTransformer;
 
 @Service
 public class LoginService {
@@ -18,7 +20,7 @@ public class LoginService {
 		this.loginRepository = loginRepository;
 	}
 
-	public LoginData doLogin(LoginJson loginJson) {
+	public LoginResponse doLogin(LoginJson loginJson) {
 		Optional<LoginData> searchResult = loginRepository.findById(loginJson.getUserName());
 
 		if (searchResult.isPresent()) {
@@ -29,7 +31,7 @@ public class LoginService {
 			if (saved.getPassword().equals(encryptedPassword)) {
 				saved.setPassword(null);
 				saved.setSecret(null);
-				return saved;
+				return LoginDataTransformer.fromLoginData(saved);
 			}
 		}
 		throw new InvalidCredentialsException();
@@ -42,10 +44,5 @@ public class LoginService {
 
 		loginData.setSecret(secret);
 		loginData.setPassword(encryptedPassword);
-
-//		toSave = loginRepository.save(toSave);
-//
-//		toSave.setPassword(null);
-//		toSave.setSecret(null);
 	}
 }

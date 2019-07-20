@@ -58,4 +58,8 @@ public class UserRegistrationData implements Serializable {
 	@OneToOne
 	@JoinColumn(name="user_right_code", referencedColumnName="user_right_code")
 	private UserRight userRight;
+	
+	@OneToOne
+	@JoinColumn(name="status_code", referencedColumnName="status_code")
+	private UserStatus status;
 }

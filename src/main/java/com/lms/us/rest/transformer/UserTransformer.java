@@ -3,6 +3,7 @@ package com.lms.us.rest.transformer;
 
 import com.lms.us.rest.model.db.LoginData;
 import com.lms.us.rest.model.db.UserRegistrationData;
+import com.lms.us.rest.model.db.UserStatus;
 import com.lms.us.rest.model.json.UserRegistrationJson;
 
 public class UserTransformer {
@@ -21,6 +22,7 @@ public class UserTransformer {
 		userRegistrationData.setUserName(userJson.getUserName());
 		userRegistrationData.setUserId(userJson.getUserId());
 		userRegistrationData.setUserRight(userJson.getUserRight());
+		userRegistrationData.setStatus(userJson.getStatus());
 		return userRegistrationData;
 	}
 
@@ -36,7 +38,7 @@ public class UserTransformer {
 		userJson.setPin(userRegistrationData.getPin());
 		userJson.setUserName(userRegistrationData.getUserName());
 		userJson.setUserId(userRegistrationData.getUserId());
-		
+		userJson.setStatus(userRegistrationData.getStatus());
 //		String accessTypeDBCode = userRegistrationData.getUserAccessType();
 		
 //		UserRoles userRoles = UserRoles.getByDBCode(accessTypeDBCode);
@@ -54,7 +56,17 @@ public class UserTransformer {
 		loginData.setUserName(userJson.getUserName());
 		loginData.setPassword(userJson.getPassword());
 		loginData.setUserId(userJson.getUserId());
-		
+		loginData.setStatus(userJson.getStatus());
+		loginData.setUserRight(userJson.getUserRight());
 		return loginData;
+	}
+	public static void setUserStatus(UserRegistrationData user, String statusCode) {
+		setUserStatus(user, statusCode, null);
+	}
+	public static void setUserStatus(UserRegistrationData user, String statusCode, String statusDescription) {
+		UserStatus status = new UserStatus();
+		status.setStatusCode(statusCode);
+		status.setStatusDescription(statusDescription);
+		user.setStatus(status );
 	}
 }

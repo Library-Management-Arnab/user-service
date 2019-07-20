@@ -5,6 +5,8 @@ import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import lombok.Data;
@@ -27,4 +29,12 @@ public class LoginData implements Serializable {
 
 	@Column(nullable = false, length = 50)
 	private String secret;
+	
+	@OneToOne
+	@JoinColumn(name="status_code", referencedColumnName="status_code")
+	private UserStatus status;
+	
+	@OneToOne
+	@JoinColumn(name="user_right_code", referencedColumnName="user_right_code")
+	private UserRight userRight;
 }

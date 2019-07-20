@@ -41,7 +41,7 @@ public class UserServiceRestController {
 
 	@DeleteMapping(value = "/{userId}")
 	public ResponseEntity<Object> deleteUser(@PathVariable("userId") String userId) {
-		return null;
+		return new ResponseEntity<>(userRegistrationService.deleteUser(userId), HttpStatus.OK);
 	}
 
 	@PutMapping(value = "/{userId}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
