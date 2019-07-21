@@ -7,6 +7,8 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import lombok.Data;
 
 @Data
@@ -17,6 +19,7 @@ public class UserStatus implements Serializable {
 
 	@Id
 	@Column(name = "status_code", length = 2)
+	@JsonIgnore
 	private String statusCode;
 
 	@Column(length = 20, nullable = false)

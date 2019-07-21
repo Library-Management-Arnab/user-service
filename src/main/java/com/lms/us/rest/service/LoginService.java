@@ -6,11 +6,10 @@ import org.springframework.stereotype.Service;
 
 import com.lms.svc.common.crypto.CryptographyUtil;
 import com.lms.svc.common.exception.InvalidCredentialsException;
-import com.lms.svc.common.model.LoginResponse;
+import com.lms.svc.common.model.AuthenticatedUser;
 import com.lms.us.rest.model.db.LoginData;
 import com.lms.us.rest.model.json.LoginJson;
 import com.lms.us.rest.repository.LoginRepository;
-import com.lms.us.rest.transformer.LoginDataTransformer;
 
 @Service
 public class LoginService {
@@ -20,7 +19,7 @@ public class LoginService {
 		this.loginRepository = loginRepository;
 	}
 
-	public LoginResponse doLogin(LoginJson loginJson) {
+	public AuthenticatedUser doLogin(LoginJson loginJson) {
 		Optional<LoginData> searchResult = loginRepository.findById(loginJson.getUserName());
 
 		if (searchResult.isPresent()) {
@@ -31,7 +30,7 @@ public class LoginService {
 			if (saved.getPassword().equals(encryptedPassword)) {
 				saved.setPassword(null);
 				saved.setSecret(null);
-				return LoginDataTransformer.fromLoginData(saved);
+				return fromLoginData(saved);
 			}
 		}
 		throw new InvalidCredentialsException();
@@ -44,5 +43,14 @@ public class LoginService {
 
 		loginData.setSecret(secret);
 		loginData.setPassword(encryptedPassword);
+	}
+	
+	private AuthenticatedUser fromLoginData(LoginData loginData) {
+		AuthenticatedUser loginResponse = new AuthenticatedUser();
+		loginResponse.setUserName(loginData.getUserName());
+		loginResponse.setUserRight(loginData.getUserRight().getUserRightCode());
+		loginResponse.setUserStatus(loginData.getStatus().getStatusCode());
+		
+		return loginResponse;
 	}
 }

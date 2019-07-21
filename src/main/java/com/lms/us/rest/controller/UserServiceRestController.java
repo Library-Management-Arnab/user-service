@@ -12,17 +12,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.lms.us.rest.model.json.UserRegistrationJson;
+import com.lms.us.rest.model.db.UserData;
 import com.lms.us.rest.service.UserRegistrationService;
+
+import lombok.AllArgsConstructor;
 
 @RestController
 @RequestMapping(value = "/users")
+@AllArgsConstructor
 public class UserServiceRestController {
 	private UserRegistrationService userRegistrationService;
-
-	public UserServiceRestController(UserRegistrationService userRegistrationService) {
-		this.userRegistrationService = userRegistrationService;
-	}
 
 	@GetMapping(value = "/", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 	public ResponseEntity<Object> getAllUsers() {
@@ -35,19 +34,19 @@ public class UserServiceRestController {
 	}
 
 	@PostMapping(value = "/", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-	public ResponseEntity<Object> addUser(@RequestBody UserRegistrationJson user) {
-		return new ResponseEntity<>(userRegistrationService.addUser(user), HttpStatus.OK);
+	public ResponseEntity<Object> register(@RequestBody UserData user) {
+		return new ResponseEntity<>(userRegistrationService.register(user), HttpStatus.OK);
 	}
 
 	@DeleteMapping(value = "/{userId}")
 	public ResponseEntity<Object> deleteUser(@PathVariable("userId") String userId) {
-		return new ResponseEntity<>(userRegistrationService.deleteUser(userId), HttpStatus.OK);
+		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 
 	@PutMapping(value = "/{userId}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 	public ResponseEntity<Object> updateUser(@PathVariable("userId") String userId,
-			@RequestBody UserRegistrationJson user) {
-		return null;
+			@RequestBody UserData user) {
+		return new ResponseEntity<>(userRegistrationService.updateUserAsSelf(userId, user), HttpStatus.OK);
 	}
 
 }

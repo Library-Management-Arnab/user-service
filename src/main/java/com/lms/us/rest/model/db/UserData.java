@@ -9,26 +9,50 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
+import com.lms.svc.common.constants.ApplicationCommonConstants;
 
 import lombok.Data;
 
 @Data
 @Entity
-@Table(name = "user_registration")
-public class UserRegistrationData implements Serializable {
+@Table(name = "user_data")
+public class UserData implements Serializable {
 	private static final long serialVersionUID = -1897451298385075865L;
+	
+	public UserData() {
+		this.setUserId("U" + (System.currentTimeMillis()) + ApplicationCommonConstants.RANDOM.nextInt());
+	}
+	
 	@Id
 	@Column(length = 15)
 	private String userId;
 
 	@Column(unique = true, nullable = false, length = 12, updatable = false)
 	private String userName;
+	
+	// This field is not mapped to a column
+	@Transient
+	@JsonProperty(access = Access.WRITE_ONLY)
+	private String password;
+	
+	// This field is not mapped to a column
+	@Transient
+	@JsonProperty(access = Access.WRITE_ONLY)
+	private String confirmPassword;
 
 	@Column(nullable = false, length = 30, unique = true)
 	private String email;
 
 	@Column(nullable = false, length = 30)
 	private String registrationDate;
+	
+	@Column(nullable = false, length = 30)
+	private String lastUpdateDate;
 
 	@Column(nullable = false, length = 30)
 	private String firstName;
@@ -51,6 +75,7 @@ public class UserRegistrationData implements Serializable {
 	@Column(nullable = false, length = 30)
 	private String displayName;
 
+	@JsonIgnore
 	@OneToOne(cascade = CascadeType.ALL)
 	@JoinColumn(name = "user_id", referencedColumnName = "user_id")
 	private LoginData loginData;
