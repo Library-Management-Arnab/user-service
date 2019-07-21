@@ -28,14 +28,14 @@ public class UserServiceRestController {
 		return new ResponseEntity<>(userRegistrationService.getAllUsers(), HttpStatus.OK);
 	}
 
-	@GetMapping(value = "/{userId}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-	public ResponseEntity<Object> getUserById(@PathVariable("userId") String userId) {
-		return new ResponseEntity<>(userRegistrationService.getUserById(userId), HttpStatus.OK);
-	}
-
 	@PostMapping(value = "/", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 	public ResponseEntity<Object> register(@RequestBody UserData user) {
 		return new ResponseEntity<>(userRegistrationService.register(user), HttpStatus.OK);
+	}
+	
+	@GetMapping(value = "/{userId}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	public ResponseEntity<Object> getUserById(@PathVariable("userId") String userId) {
+		return new ResponseEntity<>(userRegistrationService.getUserById(userId), HttpStatus.OK);
 	}
 
 	@DeleteMapping(value = "/{userId}")
