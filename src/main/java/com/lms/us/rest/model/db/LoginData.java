@@ -21,7 +21,7 @@ public class LoginData implements Serializable {
 	@Column(length = 12)
 	private String userName;
 	
-	@Column(nullable = false, length = 15)
+	@Column(nullable = false, length = 30)
 	private String userId;
 
 	@Column(nullable = false, length = 50)

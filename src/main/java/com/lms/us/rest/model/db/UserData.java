@@ -23,13 +23,12 @@ import lombok.Data;
 @Table(name = "user_data")
 public class UserData implements Serializable {
 	private static final long serialVersionUID = -1897451298385075865L;
-	
 	public UserData() {
-		this.setUserId("U" + (System.currentTimeMillis()) + ApplicationCommonConstants.RANDOM.nextInt());
+		this.setUserId("U" + ApplicationCommonConstants.generateId());
 	}
 	
 	@Id
-	@Column(length = 15)
+	@Column(length = 30)
 	private String userId;
 
 	@Column(unique = true, nullable = false, length = 12, updatable = false)

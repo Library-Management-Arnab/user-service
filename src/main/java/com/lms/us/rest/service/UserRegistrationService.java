@@ -41,6 +41,7 @@ public class UserRegistrationService {
 
 	@Transactional(propagation = Propagation.REQUIRED, readOnly = false)
 	public UserData register(UserData userRegData) {
+		System.out.println(userRegData.getUserId());
 		String registrationDate = ApplicationCommonConstants.getCurrentDateAsString();
 		userRegData.setRegistrationDate(registrationDate);
 		userRegData.setLastUpdateDate(registrationDate);
