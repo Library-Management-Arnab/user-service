@@ -7,9 +7,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.lms.us.rest.model.db.LoginData;
+import com.lms.svc.common.model.AuthenticatedUser;
+import com.lms.us.rest.model.db.UserData;
 import com.lms.us.rest.model.json.LoginJson;
-import com.lms.us.rest.model.json.UserRegistrationJson;
 import com.lms.us.rest.service.LoginService;
 import com.lms.us.rest.service.UserRegistrationService;
 
@@ -25,10 +25,16 @@ public class LoginRestController {
 
 	@PostMapping(value = "/login", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 	public ResponseEntity<Object> login(@RequestBody LoginJson loginJson) {
-		LoginData loginData = loginService.doLogin(loginJson);
-		String userId = loginData.getUserId();
+		AuthenticatedUser loginResponse = loginService.doLogin(loginJson);
+		return new ResponseEntity<>(loginResponse, HttpStatus.OK);
+	}
+	
+	@PostMapping(value = "/logindetails", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	public ResponseEntity<Object> loginAndGetData(@RequestBody LoginJson loginJson) {
+		AuthenticatedUser loginResponse = loginService.doLogin(loginJson);
+		String userName = loginResponse.getUserName();
 
-		UserRegistrationJson userDetails = userService.getUserById(userId);
+		UserData userDetails = userService.getByUserName(userName);
 		return new ResponseEntity<>(userDetails, HttpStatus.OK);
 	}
 }

@@ -1,38 +1,57 @@
 package com.lms.us.rest.model.db;
 
 import java.io.Serializable;
-import java.util.List;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
+import com.lms.svc.common.constants.ApplicationCommonConstants;
 
 import lombok.Data;
 
 @Data
 @Entity
-@Table(name = "user_registration")
-public class UserRegistrationData implements Serializable {
+@Table(name = "user_data")
+public class UserData implements Serializable {
 	private static final long serialVersionUID = -1897451298385075865L;
+	public UserData() {
+		this.setUserId("U" + ApplicationCommonConstants.generateId());
+	}
+	
 	@Id
-	@Column(length = 15)
+	@Column(length = 30)
 	private String userId;
 
 	@Column(unique = true, nullable = false, length = 12, updatable = false)
 	private String userName;
+	
+	// This field is not mapped to a column
+	@Transient
+	@JsonProperty(access = Access.WRITE_ONLY)
+	private String password;
+	
+	// This field is not mapped to a column
+	@Transient
+	@JsonProperty(access = Access.WRITE_ONLY)
+	private String confirmPassword;
 
 	@Column(nullable = false, length = 30, unique = true)
 	private String email;
 
 	@Column(nullable = false, length = 30)
 	private String registrationDate;
+	
+	@Column(nullable = false, length = 30)
+	private String lastUpdateDate;
 
 	@Column(nullable = false, length = 30)
 	private String firstName;
@@ -55,16 +74,16 @@ public class UserRegistrationData implements Serializable {
 	@Column(nullable = false, length = 30)
 	private String displayName;
 
-//	@Column(nullable = false, length = 2)
-//	private String userAccessType;
-
+	@JsonIgnore
 	@OneToOne(cascade = CascadeType.ALL)
 	@JoinColumn(name = "user_id", referencedColumnName = "user_id")
 	private LoginData loginData;
 	
-	@ManyToMany(cascade=CascadeType.ALL, fetch=FetchType.EAGER)
-	@JoinTable(name="user_group_mapping", 
-		joinColumns = {@JoinColumn(name="user_id")}, 
-		inverseJoinColumns = {@JoinColumn(name="group_id")})
-	private List<AccessGroup> accessGroups;
+	@OneToOne
+	@JoinColumn(name="user_right_code", referencedColumnName="user_right_code")
+	private UserRight userRight;
+	
+	@OneToOne
+	@JoinColumn(name="status_code", referencedColumnName="status_code")
+	private UserStatus status;
 }
