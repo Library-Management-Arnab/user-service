@@ -30,3 +30,5 @@ bin/*
 .gradle/*
 target/*
 *.iml
+.idea/*
+.idea/
