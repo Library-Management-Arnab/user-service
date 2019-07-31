@@ -29,3 +29,4 @@ bin/*
 .project
 .gradle/*
 target/*
+*.iml

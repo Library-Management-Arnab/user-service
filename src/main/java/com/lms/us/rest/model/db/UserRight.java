@@ -9,6 +9,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.Data;
 
+import java.util.Objects;
+
 @Data
 @Entity
 @Table(name = "user_right")
@@ -28,4 +30,17 @@ public class UserRight {
 
 	@Column(name="user_right_description", length = 200)
 	private String description;
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		UserRight userRight = (UserRight) o;
+		return userRightCode.equals(userRight.userRightCode);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(userRightCode);
+	}
 }

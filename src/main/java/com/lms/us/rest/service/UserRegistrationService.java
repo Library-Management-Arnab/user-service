@@ -8,15 +8,13 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.lms.svc.common.constants.ApplicationCommonConstants;
-import com.lms.svc.common.exception.InvalidFieldValueException;
+import com.lms.us.rest.exception.DuplicateUserException;
 import com.lms.us.rest.exception.NoSuchUserException;
 import com.lms.us.rest.model.db.LoginData;
 import com.lms.us.rest.model.db.UserData;
-import com.lms.us.rest.model.db.UserRight;
-import com.lms.us.rest.model.db.UserStatus;
-import com.lms.us.rest.model.json.UserDataJson;
+import com.lms.us.rest.model.json.UserJson;
 import com.lms.us.rest.repository.UserRegistrationRepository;
-import com.lms.us.rest.repository.UserRightRepository;
+import com.lms.us.rest.transformer.UserDataTransformer;
 
 import lombok.AllArgsConstructor;
 
@@ -25,68 +23,90 @@ import lombok.AllArgsConstructor;
 public class UserRegistrationService {
 	private UserRegistrationRepository userRegistrationRepository;
 	private LoginService loginService;
-	private UserRightRepository userRightRepository;
+	private UserDataTransformer userDataTransformer;
 
 
-	public List<UserData> getAllUsers() {
-		return userRegistrationRepository.findAll();
+	public List<UserJson> getAllUsers() {
+		List<UserData> allUsers = userRegistrationRepository.findAll();
+		return userDataTransformer.userDataListToUserJsonList(allUsers);
 	}
 
-	public UserData getUserById(String userId) {
-		return searchUserById(userId);
+	public UserJson getUserById(String userId) {
+		UserData foundUser = searchUserById(userId);
+		return userDataTransformer.userDataToUserJson(foundUser);
 	}
 	
-	public UserData getByUserName(String userName) {
-		return searchByUsername(userName);
+	public UserJson getByUserName(String userName) {
+		UserData foundUser = searchByUsername(userName);
+		return userDataTransformer.userDataToUserJson(foundUser);
 	}
 
 	@Transactional(propagation = Propagation.REQUIRED, readOnly = false)
-	public UserData register(UserDataJson userRegDataJson) {
-		System.out.println(userRegDataJson.getUserId());
-		
-		String registrationDate = ApplicationCommonConstants.getCurrentDateAsString();
-		userRegData.setRegistrationDate(registrationDate);
-		userRegData.setLastUpdateDate(registrationDate);
-		setUserStatus(userRegData, ApplicationCommonConstants.USER_STATUS_CODE_ACTIVE);
-		
-		// TODO - to be separated for admin and user later
-		setUserRight(userRegData);
+	public UserJson register(UserJson userJson) {
+		validateDuplicateUser(userJson.getUserName());
+		String currentDate = ApplicationCommonConstants.getCurrentDateAsString();
+		userJson.setRegistrationDate(currentDate);
+		userJson.setLastUpdateDate(currentDate);
+		userJson.setStatus(ApplicationCommonConstants.USER_STATUS_ACTIVE);
 
-		LoginData loginData = extractLoginData(userRegData);
-		loginData.setStatus(userRegData.getStatus());
+		// TODO - to be separated for admin and user later
+		userJson.setRight(ApplicationCommonConstants.USER_RIGHT_BASIC);
+		
+		UserData registrationData = userDataTransformer.userJsonToUserData(userJson);
+
+		LoginData loginData = extractLoginData(registrationData);
+		loginData.setStatus(registrationData.getStatus());
 		
 		loginService.updateLoginInfo(loginData);
-		userRegData.setLoginData(loginData);
+		registrationData.setLoginData(loginData);
 		
-		return userRegistrationRepository.save(userRegData);
+		UserData registeredUser = userRegistrationRepository.save(registrationData);
+		return userDataTransformer.userDataToUserJson(registeredUser);
 	}
 
 	public void deleteUser(String userId) {
 		UserData user = searchUserById(userId);
-		setUserStatus(user, ApplicationCommonConstants.USER_STATUS_CODE_DELETED);
+		user.setStatus(userDataTransformer.getUserStatusFromDescription(ApplicationCommonConstants.USER_STATUS_CODE_DELETED));
 		user.setLastUpdateDate(ApplicationCommonConstants.getCurrentDateAsString());
 		userRegistrationRepository.save(user);
 	}
 
-	public UserData updateUserAsSelf(String userId, UserData user) {
+	public UserJson updateUserAsSelf(String userId, UserJson userJson) {
 		UserData existing = searchUserById(userId);
+
+		UserData input = userDataTransformer.userJsonToUserData(userJson);
 		
-		user.setStatus(existing.getStatus());
-		user.setUserRight(existing.getUserRight());
-		user.setRegistrationDate(existing.getRegistrationDate());
-		user.setLastUpdateDate(ApplicationCommonConstants.getCurrentDateAsString());
+		//Restoring the existing userId
+		input.setUserId(existing.getUserId());
 		
-		return userRegistrationRepository.save(user);
+		// Basic user cannot update its own status
+		input.setStatus(existing.getStatus());
+
+		// Basic user cannot update its own rights
+		input.setUserRight(existing.getUserRight());
+
+		// Registration date is unchangeable
+		input.setRegistrationDate(existing.getRegistrationDate());
+
+		input.setLastUpdateDate(ApplicationCommonConstants.getCurrentDateAsString());
+
+		UserData updatedUser = userRegistrationRepository.save(input);
+
+		return userDataTransformer.userDataToUserJson(updatedUser);
 	}
 	
 	// TODO - To be added later
-	public UserData updateUserAsAdmin(String userId, UserData user) {
+	public UserJson updateUserAsAdmin(String userId, UserJson userJson) {
 		UserData existing = searchUserById(userId);
-		
-		user.setStatus(existing.getStatus());
-		user.setUserRight(existing.getUserRight());
-		
-		return userRegistrationRepository.save(user);
+
+		UserData input = userDataTransformer.userJsonToUserData(userJson);
+
+		// Registration date is unchangeable
+		input.setRegistrationDate(existing.getRegistrationDate());
+		input.setLastUpdateDate(ApplicationCommonConstants.getCurrentDateAsString());
+
+		UserData updatedUser = userRegistrationRepository.save(input);
+		return userDataTransformer.userDataToUserJson(updatedUser);
 	}
 
 	private UserData searchUserById(String userId) {
@@ -107,25 +127,11 @@ public class UserRegistrationService {
 		throw new NoSuchUserException();
 	}
 	
-	private void setUserRight(UserData data) {
-		Optional<UserRight> searchedRight = userRightRepository.findByRight(data.getUserRight().getRight());
-		
-		if(searchedRight.isPresent()) {
-			data.setUserRight(searchedRight.get());
-		} else {
-			throw new InvalidFieldValueException("UserRight", data.getUserRight().getRight(), userRightRepository.findAllRights());
+	private void validateDuplicateUser(String userName) {
+		UserData found = searchByUsername(userName);
+		if(found.getUserId() != null) {
+			throw new DuplicateUserException(userName);
 		}
-	}
-	
-	private void setUserStatus(UserData user, String statusCode) {
-		setUserStatus(user, statusCode, null);
-	}
-	
-	private void setUserStatus(UserData user, String statusCode, String statusDescription) {
-		UserStatus status = new UserStatus();
-		status.setStatusCode(statusCode);
-		status.setStatusDescription(statusDescription);
-		user.setStatus(status );
 	}
 	
 	private LoginData extractLoginData(UserData userData) {
