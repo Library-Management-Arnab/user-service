@@ -14,6 +14,7 @@ import com.lms.us.rest.model.db.LoginData;
 import com.lms.us.rest.model.db.UserData;
 import com.lms.us.rest.model.db.UserRight;
 import com.lms.us.rest.model.db.UserStatus;
+import com.lms.us.rest.model.json.UserDataJson;
 import com.lms.us.rest.repository.UserRegistrationRepository;
 import com.lms.us.rest.repository.UserRightRepository;
 
@@ -40,8 +41,9 @@ public class UserRegistrationService {
 	}
 
 	@Transactional(propagation = Propagation.REQUIRED, readOnly = false)
-	public UserData register(UserData userRegData) {
-		System.out.println(userRegData.getUserId());
+	public UserData register(UserDataJson userRegDataJson) {
+		System.out.println(userRegDataJson.getUserId());
+		
 		String registrationDate = ApplicationCommonConstants.getCurrentDateAsString();
 		userRegData.setRegistrationDate(registrationDate);
 		userRegData.setLastUpdateDate(registrationDate);

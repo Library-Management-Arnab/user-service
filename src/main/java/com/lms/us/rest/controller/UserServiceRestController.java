@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.lms.us.rest.model.db.UserData;
+import com.lms.us.rest.model.json.UserDataJson;
 import com.lms.us.rest.service.UserRegistrationService;
 
 import lombok.AllArgsConstructor;
@@ -29,7 +30,7 @@ public class UserServiceRestController {
 	}
 
 	@PostMapping(value = "/", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-	public ResponseEntity<Object> register(@RequestBody UserData user) {
+	public ResponseEntity<Object> register(@RequestBody UserDataJson user) {
 		return new ResponseEntity<>(userRegistrationService.register(user), HttpStatus.OK);
 	}
 	
