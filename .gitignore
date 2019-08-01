@@ -29,3 +29,6 @@ bin/*
 .project
 .gradle/*
 target/*
+*.iml
+.idea/*
+.idea/

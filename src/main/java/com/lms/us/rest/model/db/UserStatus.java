@@ -1,15 +1,13 @@
 package com.lms.us.rest.model.db;
 
-import java.io.Serializable;
+import lombok.Data;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import lombok.Data;
+import java.io.Serializable;
+import java.util.Objects;
 
 @Data
 @Entity
@@ -19,9 +17,21 @@ public class UserStatus implements Serializable {
 
 	@Id
 	@Column(name = "status_code", length = 2)
-	@JsonIgnore
 	private String statusCode;
 
 	@Column(length = 20, nullable = false)
 	private String statusDescription;
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		UserStatus that = (UserStatus) o;
+		return statusCode.equals(that.statusCode);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(statusCode);
+	}
 }
