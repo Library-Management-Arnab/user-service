@@ -1,12 +1,5 @@
 package com.lms.us.rest.service;
 
-import java.util.List;
-import java.util.Optional;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.lms.svc.common.constants.ApplicationCommonConstants;
 import com.lms.us.rest.exception.DuplicateUserException;
 import com.lms.us.rest.exception.NoSuchUserException;
@@ -15,8 +8,13 @@ import com.lms.us.rest.model.db.UserData;
 import com.lms.us.rest.model.json.UserJson;
 import com.lms.us.rest.repository.UserRegistrationRepository;
 import com.lms.us.rest.transformer.UserDataTransformer;
-
 import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -32,12 +30,12 @@ public class UserRegistrationService {
 	}
 
 	public UserJson getUserById(String userId) {
-		UserData foundUser = searchUserById(userId);
+		UserData foundUser = searchAndValidateByUserId(userId);
 		return userDataTransformer.userDataToUserJson(foundUser);
 	}
 	
 	public UserJson getByUserName(String userName) {
-		UserData foundUser = searchByUsername(userName);
+		UserData foundUser = searchAndValidateByUserName(userName);
 		return userDataTransformer.userDataToUserJson(foundUser);
 	}
 
@@ -111,25 +109,30 @@ public class UserRegistrationService {
 
 	private UserData searchUserById(String userId) {
 		Optional<UserData> searchResult = userRegistrationRepository.findById(userId);
-		if (searchResult.isPresent()) {
-			UserData userRegistrationData = searchResult.get();
-			return userRegistrationData;
+		return searchResult.isPresent() ? searchResult.get() : null;
+	}
+	private UserData searchAndValidateByUserId(String userId) {
+		UserData foundUser = searchUserById(userId);
+		if (foundUser != null) {
+			return foundUser;
 		}
 		throw new NoSuchUserException();
 	}
-	
-	private UserData searchByUsername(String userName) {
-		Optional<UserData> searchResult = userRegistrationRepository.findByUserName(userName);
-		if (searchResult.isPresent()) {
-			UserData userRegistrationData = searchResult.get();
-			return userRegistrationData;
+	private UserData searchAndValidateByUserName(String userName) {
+		UserData foundUser = searchByUsername(userName);
+		if (foundUser != null) {
+			return foundUser;
 		}
 		throw new NoSuchUserException();
+	}
+	private UserData searchByUsername(String userName) {
+		Optional<UserData> searchResult = userRegistrationRepository.findByUserName(userName);
+		return searchResult.isPresent() ? searchResult.get() : null;
 	}
 	
 	private void validateDuplicateUser(String userName) {
 		UserData found = searchByUsername(userName);
-		if(found.getUserId() != null) {
+		if(found != null && found.getUserId() != null) {
 			throw new DuplicateUserException(userName);
 		}
 	}
