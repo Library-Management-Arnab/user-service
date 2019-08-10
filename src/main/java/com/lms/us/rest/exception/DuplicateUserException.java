@@ -15,7 +15,8 @@ public class DuplicateUserException extends ApplicationError {
 	private final String errorTime;
 	
 	public DuplicateUserException(String userName) {
-		this.message = String.format(ApplicationCommonConstants.DUPLICATE_USER_ERROR_MESSAGE, userName);
+		super(String.format(ApplicationCommonConstants.DUPLICATE_USER_ERROR_MESSAGE, userName));
+		this.message = super.getMessage();
 		this.errorCode = ApplicationCommonConstants.DUPLICATE_USER_ERROR_CODE;
 		this.httpStatus = HttpStatus.CONFLICT;
 		this.errorTime = ApplicationCommonConstants.getCurrentDateAsString();
