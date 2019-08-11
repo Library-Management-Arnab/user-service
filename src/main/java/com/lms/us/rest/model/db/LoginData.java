@@ -20,21 +20,24 @@ public class LoginData implements Serializable {
 	@Id
 	@Column(length = 12)
 	private String userName;
-	
+
 	@Column(nullable = false, length = 30)
 	private String userId;
+
+	@Column(nullable = false, length = 100)
+	private String fullName;
 
 	@Column(nullable = false, length = 50)
 	private String password;
 
 	@Column(nullable = false, length = 50)
 	private String secret;
-	
+
 	@OneToOne
-	@JoinColumn(name="status_code", referencedColumnName="status_code")
+	@JoinColumn(name = "status_code", referencedColumnName = "status_code")
 	private UserStatus status;
-	
-	@OneToOne
-	@JoinColumn(name="user_right_code", referencedColumnName="user_right_code")
-	private UserRight userRight;
+
+//	@OneToOne
+//	@JoinColumn(name = "user_right_code", referencedColumnName = "user_right_code")
+//	private List<UserRight> userRight;
 }

@@ -1,12 +1,14 @@
 package com.lms.us.rest.model.db;
 
 import java.io.Serializable;
+import java.util.List;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
@@ -27,6 +29,24 @@ public class UserData implements Serializable {
 		this.setUserId("U" + ApplicationCommonConstants.generateId());
 	}
 	
+	public UserData(UserData userData) {
+		this.address1 = userData.address1;
+		this.address2 = userData.address2;
+		this.contactNo = userData.contactNo;
+		this.displayName = userData.displayName;
+		this.email = userData.email;
+		this.firstName = userData.firstName;
+		this.lastName = userData.lastName;
+		this.lastUpdateDate = userData.lastUpdateDate;
+		this.loginData = userData.loginData;
+		this.pin = userData.pin;
+		this.registrationDate = userData.registrationDate;
+		this.status = userData.status;
+		this.userName = userData.userName;
+		this.userId = userData.userId;
+		this.userRights = userData.userRights;
+	}
+
 	@Id
 	@Column(length = 30)
 	private String userId;
@@ -79,9 +99,8 @@ public class UserData implements Serializable {
 	@JoinColumn(name = "user_id", referencedColumnName = "user_id")
 	private LoginData loginData;
 	
-	@OneToOne
-	@JoinColumn(name="user_right_code", referencedColumnName="user_right_code")
-	private UserRight userRight;
+	@ManyToMany
+	private List<UserRight> userRights;
 	
 	@OneToOne
 	@JoinColumn(name="status_code", referencedColumnName="status_code")

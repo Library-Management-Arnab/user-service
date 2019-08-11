@@ -1,6 +1,7 @@
 package com.lms.us.rest.model.json;
 
 import java.io.Serializable;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
@@ -62,8 +63,8 @@ public class UserJson implements Serializable {
 	@ApiModelProperty(dataType = "String", notes = "Display name will not be read from API input. It will display the value from the database.", allowEmptyValue = false)
 	private String displayName;
 
-	@ApiModelProperty(dataType = "String", notes = "Access right of the user", example = "Basic User", required = true, allowEmptyValue = false)
-	private String right;
+	@ApiModelProperty(dataType = "String", notes = "Access rights of the user", example = "Basic User", required = true, allowEmptyValue = false)
+	private List<String> rights;
 
 	@ApiModelProperty(dataType = "String", notes = "Status of the user", example = "Active", required = true, allowEmptyValue = false)
 	private String status;

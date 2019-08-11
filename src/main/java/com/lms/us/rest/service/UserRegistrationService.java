@@ -1,5 +1,13 @@
 package com.lms.us.rest.service;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.lms.svc.common.constants.ApplicationCommonConstants;
 import com.lms.us.rest.exception.DuplicateUserException;
 import com.lms.us.rest.exception.NoSuchUserException;
@@ -8,13 +16,8 @@ import com.lms.us.rest.model.db.UserData;
 import com.lms.us.rest.model.json.UserJson;
 import com.lms.us.rest.repository.UserRegistrationRepository;
 import com.lms.us.rest.transformer.UserDataTransformer;
-import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
+import lombok.AllArgsConstructor;
 
 @Service
 @AllArgsConstructor
@@ -48,7 +51,7 @@ public class UserRegistrationService {
 		userJson.setStatus(ApplicationCommonConstants.USER_STATUS_ACTIVE);
 
 		// TODO - to be separated for admin and user later
-		userJson.setRight(ApplicationCommonConstants.USER_RIGHT_BASIC);
+		userJson.setRights(Arrays.asList(ApplicationCommonConstants.USER_RIGHT_BASIC));
 		
 		UserData registrationData = userDataTransformer.userJsonToUserData(userJson);
 
@@ -81,7 +84,7 @@ public class UserRegistrationService {
 		input.setStatus(existing.getStatus());
 
 		// Basic user cannot update its own rights
-		input.setUserRight(existing.getUserRight());
+		input.setUserRights(existing.getUserRights());
 
 		// Registration date is unchangeable
 		input.setRegistrationDate(existing.getRegistrationDate());
@@ -143,7 +146,6 @@ public class UserRegistrationService {
 		loginData.setPassword(userData.getPassword());
 		loginData.setUserId(userData.getUserId());
 		loginData.setStatus(userData.getStatus());
-		loginData.setUserRight(userData.getUserRight());
 		return loginData;
 	}
 }

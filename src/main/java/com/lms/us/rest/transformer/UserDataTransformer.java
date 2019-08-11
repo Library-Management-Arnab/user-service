@@ -38,7 +38,7 @@ public class UserDataTransformer {
         userData.setUserName(userJson.getUserName());
         
         userData.setStatus(getUserStatusFromDescription(userJson.getStatus()));
-        userData.setUserRight(getUserRightFromAccessType(userJson.getRight()));
+        userData.setUserRights(getUserRightsFromAccessTypes(userJson.getRights()));
 
         return userData;
     }
@@ -60,7 +60,7 @@ public class UserDataTransformer {
         userJson.setUserName(userData.getUserName());
         userJson.setUserId(userData.getUserId());
         userJson.setStatus(getDescriptionFromUserStatus(userData.getStatus()));
-        userJson.setRight(getAccessTypeFromUserRight(userData.getUserRight()));
+        userJson.setRights(getAccessTypeFromUserRight(userData.getUserRights()));
 
         return userJson;
     }
@@ -89,11 +89,11 @@ public class UserDataTransformer {
         return staticDataLoader.getDescriptionFromUserStatus(userStatus);
     }
 
-    public UserRight getUserRightFromAccessType(String description) {
-        return staticDataLoader.getUserRightFromAccessType(description);
+    public List<UserRight> getUserRightsFromAccessTypes(List<String> rights) {
+        return staticDataLoader.getUserRightsFromAccessTypes(rights);
     }
 
-    public String getAccessTypeFromUserRight(UserRight userRight) {
-        return staticDataLoader.getAccessTypeFromUserRight(userRight);
+    public List<String> getAccessTypeFromUserRight(List<UserRight> userRights) {
+        return staticDataLoader.getAccessTypesFromUserRights(userRights);
     }
 }

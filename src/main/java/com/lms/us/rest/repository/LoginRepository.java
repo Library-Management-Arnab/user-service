@@ -7,5 +7,4 @@ import com.lms.us.rest.model.db.LoginData;
 
 @Repository
 public interface LoginRepository extends JpaRepository<LoginData, String>{
-
 }

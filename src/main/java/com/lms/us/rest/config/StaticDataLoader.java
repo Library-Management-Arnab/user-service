@@ -1,5 +1,6 @@
 package com.lms.us.rest.config;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -39,18 +40,24 @@ public class StaticDataLoader extends BaseDataLoader {
 		userRights = userRightRepository.findAll();
 		userStatuses = userStatusRepository.findAll();
 
-		allRights = userRights.stream().map(UserRight::getRight).collect(Collectors.toList());
+		allRights = userRights.stream().map(UserRight::getUserRightCode).collect(Collectors.toList());
 
 		allStatuses = userStatuses.stream().map(UserStatus::getStatusDescription).collect(Collectors.toList());
 	}
 
-	public UserRight getUserRightFromAccessType(String accessType) {
-		Predicate<UserRight> userRightPredicate = right -> right.getRight().equalsIgnoreCase(accessType);
-		return returnOrThrow(userRights, userRightPredicate, accessType, allRights, "UserRight");
+	public List<UserRight> getUserRightsFromAccessTypes(List<String> accessTypes) {
+		List<UserRight> userRights = new ArrayList<>();
+		accessTypes.forEach(accessType -> {
+			Predicate<UserRight> userRightPredicate = right -> right.getUserRightCode().equalsIgnoreCase(accessType);
+			userRights.add(returnOrThrow(userRights, userRightPredicate, accessType, allRights, "UserRight"));
+		});
+		return userRights;
 	}
 
-	public String getAccessTypeFromUserRight(UserRight userRight) {
-		return getClientString(userRights, userRight, UserRight::getRight);
+	public List<String> getAccessTypesFromUserRights(List<UserRight> userRights) {
+		List<String> accessTypes = new ArrayList<>();
+		userRights.forEach(userRight -> accessTypes.add(getClientString(userRights, userRight, UserRight::getUserRightCode)));
+		return accessTypes;
 	}
 
 	public UserStatus getUserStatusFromDescription(String description) {
