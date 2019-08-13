@@ -1,24 +1,12 @@
 package com.lms.us.rest.model.db;
 
-import java.io.Serializable;
-import java.util.List;
-
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
-import javax.persistence.Transient;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import com.lms.svc.common.constants.ApplicationCommonConstants;
-
+import com.lms.us.rest.model.auth.UserAPIData;
 import lombok.Data;
+
+import javax.persistence.*;
+import java.io.Serializable;
 
 @Data
 @Entity
@@ -44,7 +32,6 @@ public class UserData implements Serializable {
 		this.status = userData.status;
 		this.userName = userData.userName;
 		this.userId = userData.userId;
-		this.userRights = userData.userRights;
 	}
 
 	@Id
@@ -56,12 +43,10 @@ public class UserData implements Serializable {
 	
 	// This field is not mapped to a column
 	@Transient
-	@JsonProperty(access = Access.WRITE_ONLY)
 	private String password;
 	
 	// This field is not mapped to a column
 	@Transient
-	@JsonProperty(access = Access.WRITE_ONLY)
 	private String confirmPassword;
 
 	@Column(nullable = false, length = 30, unique = true)
@@ -99,10 +84,11 @@ public class UserData implements Serializable {
 	@JoinColumn(name = "user_id", referencedColumnName = "user_id")
 	private LoginData loginData;
 	
-	@ManyToMany
-	private List<UserRight> userRights;
-	
 	@OneToOne
 	@JoinColumn(name="status_code", referencedColumnName="status_code")
 	private UserStatus status;
+
+	@OneToOne
+	@JoinColumn(name="user_api_data_record", referencedColumnName = "record_id")
+	private UserAPIData userAPIData;
 }

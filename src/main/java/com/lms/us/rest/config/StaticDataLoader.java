@@ -1,73 +1,94 @@
 package com.lms.us.rest.config;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
-import javax.annotation.PostConstruct;
-
+import com.lms.svc.common.config.BaseDataLoader;
+import com.lms.svc.common.constants.ApplicationCommonConstants;
+import com.lms.us.rest.model.auth.Scope;
+import com.lms.us.rest.model.db.UserRole;
+import com.lms.us.rest.model.db.UserStatus;
+import com.lms.us.rest.repository.ScopeRepository;
+import com.lms.us.rest.repository.UserRoleRepository;
+import com.lms.us.rest.repository.UserStatusRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import com.lms.svc.common.config.BaseDataLoader;
-import com.lms.us.rest.model.db.UserRight;
-import com.lms.us.rest.model.db.UserStatus;
-import com.lms.us.rest.repository.UserRightRepository;
-import com.lms.us.rest.repository.UserStatusRepository;
+import javax.annotation.PostConstruct;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Predicate;
 
 @Component
 public class StaticDataLoader extends BaseDataLoader {
-	private static final Logger LOG = LoggerFactory.getLogger(StaticDataLoader.class);
+    private static final Logger LOG = LoggerFactory.getLogger(StaticDataLoader.class);
 
-	private UserRightRepository userRightRepository;
-	private UserStatusRepository userStatusRepository;
+    private UserRoleRepository userRoleRepository;
+    private UserStatusRepository userStatusRepository;
+    private ScopeRepository scopeRepository;
 
-	public StaticDataLoader(UserRightRepository userRightRepository, UserStatusRepository userStatusRepository) {
-		this.userRightRepository = userRightRepository;
-		this.userStatusRepository = userStatusRepository;
-	}
+    public StaticDataLoader(UserRoleRepository userRoleRepository, UserStatusRepository userStatusRepository, ScopeRepository scopeRepository) {
+        this.userRoleRepository = userRoleRepository;
+        this.userStatusRepository = userStatusRepository;
+        this.scopeRepository = scopeRepository;
+    }
 
-	private List<UserRight> userRights;
-	private List<String> allRights;
-	private List<UserStatus> userStatuses;
-	private List<String> allStatuses;
+    private Collection<UserRole> userRoles;
+    private Collection<String> allRoles;
+    private Collection<UserStatus> userStatuses;
+    private Collection<String> allStatuses;
+    private Collection<String> allScopeNames;
+    private Collection<Scope> allScopes;
 
-	@PostConstruct
-	public void populateStaticData() {
-		LOG.info("Populating static data");
-		userRights = userRightRepository.findAll();
-		userStatuses = userStatusRepository.findAll();
+    @PostConstruct
+    public void populateStaticData() {
+        LOG.info("Populating static data");
+        userRoles = userRoleRepository.findAll();
+        userStatuses = userStatusRepository.findAll();
+        allScopes = scopeRepository.findAll();
 
-		allRights = userRights.stream().map(UserRight::getUserRightCode).collect(Collectors.toList());
+        allRoles = ApplicationCommonConstants.toCollection(userRoles, UserRole::getRoleCode);
+        allStatuses = ApplicationCommonConstants.toCollection(userStatuses, UserStatus::getStatusDescription);
+        allScopeNames = ApplicationCommonConstants.toCollection(allScopes, Scope::getScopeName);
+    }
 
-		allStatuses = userStatuses.stream().map(UserStatus::getStatusDescription).collect(Collectors.toList());
-	}
+    public Collection<UserRole> getRoles(Collection<String> roleCodes) {
+        List<UserRole> roles = new ArrayList<>();
+        roleCodes.forEach(roleCode -> {
+            Predicate<UserRole> userRolePredicate = role -> role.getRoleCode().equalsIgnoreCase(roleCode);
+            roles.add(returnOrThrow(userRoles, userRolePredicate, roleCode, allRoles, "User Role"));
+        });
+        return roles;
+    }
 
-	public List<UserRight> getUserRightsFromAccessTypes(List<String> accessTypes) {
-		List<UserRight> userRights = new ArrayList<>();
-		accessTypes.forEach(accessType -> {
-			Predicate<UserRight> userRightPredicate = right -> right.getUserRightCode().equalsIgnoreCase(accessType);
-			userRights.add(returnOrThrow(userRights, userRightPredicate, accessType, allRights, "UserRight"));
-		});
-		return userRights;
-	}
+    public Collection<String> getRoleCodes(Collection<UserRole> roles) {
+        List<String> roleCodes = new ArrayList<>();
+        roles.forEach(role -> roleCodes.add(getClientString(roles, role, UserRole::getRoleCode)));
+        return roleCodes;
+    }
 
-	public List<String> getAccessTypesFromUserRights(List<UserRight> userRights) {
-		List<String> accessTypes = new ArrayList<>();
-		userRights.forEach(userRight -> accessTypes.add(getClientString(userRights, userRight, UserRight::getUserRightCode)));
-		return accessTypes;
-	}
+    public UserStatus getUserStatusFromDescription(String description) {
+        Predicate<UserStatus> userStatusPredicate = userStatus -> userStatus.getStatusDescription()
+                .equalsIgnoreCase(description);
+        return returnOrThrow(userStatuses, userStatusPredicate, description, allStatuses, "UserStatus");
+    }
 
-	public UserStatus getUserStatusFromDescription(String description) {
-		Predicate<UserStatus> userStatusPredicate = userStatus -> userStatus.getStatusDescription()
-				.equalsIgnoreCase(description);
-		return returnOrThrow(userStatuses, userStatusPredicate, description, allStatuses, "UserStatus");
-	}
+    public String getDescriptionFromUserStatus(UserStatus userStatus) {
+        return getClientString(userStatuses, userStatus, UserStatus::getStatusDescription);
+    }
 
-	public String getDescriptionFromUserStatus(UserStatus userStatus) {
-		return getClientString(userStatuses, userStatus, UserStatus::getStatusDescription);
-	}
+    public Collection<Scope> toScopes(Collection<String> scopeNames) {
+        List<Scope> scopes = new ArrayList<>();
+        scopeNames.forEach(scopeName -> {
+            Predicate<Scope> scopePredicate = scope -> scope.getScopeName().equalsIgnoreCase(scopeName);
+            scopes.add(returnOrThrow(allScopes, scopePredicate, scopeName, allScopeNames, "Scope"));
+        });
+        return scopes;
+    }
+
+    public Collection<String> fromScopes(Collection<Scope> scopes) {
+        List<String> scopeNames = new ArrayList<>();
+        scopes.forEach(scope -> scopeNames.add(getClientString(scopes, scope, Scope::getScopeName)));
+        return scopeNames;
+    }
 
 }

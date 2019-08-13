@@ -1,51 +1,46 @@
 package com.lms.us.rest.config;
 
-import java.util.Arrays;
-
+import com.lms.us.rest.service.LoginService;
+import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-
-import com.lms.us.rest.auth.provider.UserServiceAuthenticationProvider;
-
-import lombok.AllArgsConstructor;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
+@EnableWebSecurity
 @AllArgsConstructor
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
-	// private static final String[] SECURED_RESOURCES = { "/login",
-	// "/oauth/authorize" };
-
-	private UserServiceAuthenticationProvider userServiceAuthenticationProvider;
-	
+	private static final Logger LOG = LoggerFactory.getLogger(SecurityConfig.class);
+	private LoginService loginService;
 	@Bean
-	public AuthenticationManager authenticationManager() {
-		AuthenticationManager authenticationManager = new ProviderManager(Arrays.asList(userServiceAuthenticationProvider));
-		return authenticationManager;
+	public PasswordEncoder passwordEncoder() {
+		return new BCryptPasswordEncoder();
+	}
+	@Bean
+	@Override
+	public UserDetailsService userDetailsService() {
+		return loginService;
 	}
 	@Override
-	protected void configure(HttpSecurity http) throws Exception {
+	public void configure(HttpSecurity http) throws Exception {
+		LOG.info("Configuring HTTP security patterns");
 		http
-			.cors()
-			.disable()
 			.authorizeRequests()
-			.antMatchers("/users/")
-			.permitAll()
-			.antMatchers("/oauth/authorize")
-			.permitAll()
-            .antMatchers("/oauth/token")
-            .permitAll()
-            .antMatchers("/api-docs/**")
-            .permitAll();
+			.antMatchers("/register", "/login").permitAll()
+			.anyRequest().authenticated()
+			.and()
+			.userDetailsService(loginService);
 	}
-
 	@Override
-	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-		auth.authenticationProvider(userServiceAuthenticationProvider);
+	public void configure(AuthenticationManagerBuilder builder) throws Exception {
+		builder.userDetailsService(loginService).passwordEncoder(passwordEncoder());
 	}
 }

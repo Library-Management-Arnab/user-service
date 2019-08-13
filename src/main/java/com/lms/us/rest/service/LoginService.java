@@ -45,14 +45,16 @@ public class LoginService implements UserDetailsService {
 	}
 
 	public void updateLoginInfo(LoginData loginData) {
-		String secret = CryptographyUtil.generateSecret();
+		String secret = createSecret();
 
 		String encryptedPassword = CryptographyUtil.encrypt(loginData.getPassword(), secret);
 
 		loginData.setSecret(secret);
 		loginData.setPassword(encryptedPassword);
 	}
-	
+	public String createSecret() {
+		return CryptographyUtil.generateSecret();
+	}
 	private AuthenticatedUser fromLoginData(LoginData loginData) {
 		AuthenticatedUser loginResponse = new AuthenticatedUser();
 		loginResponse.setUserName(loginData.getUserName());

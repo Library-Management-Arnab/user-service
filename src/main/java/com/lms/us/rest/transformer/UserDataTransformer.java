@@ -1,17 +1,15 @@
 package com.lms.us.rest.transformer;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.springframework.stereotype.Component;
-
 import com.lms.us.rest.config.StaticDataLoader;
+import com.lms.us.rest.model.auth.Scope;
 import com.lms.us.rest.model.db.UserData;
-import com.lms.us.rest.model.db.UserRight;
+import com.lms.us.rest.model.db.UserRole;
 import com.lms.us.rest.model.db.UserStatus;
 import com.lms.us.rest.model.json.UserJson;
-
 import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Component;
+
+import java.util.*;
 
 @Component
 @AllArgsConstructor
@@ -38,7 +36,7 @@ public class UserDataTransformer {
         userData.setUserName(userJson.getUserName());
         
         userData.setStatus(getUserStatusFromDescription(userJson.getStatus()));
-        userData.setUserRights(getUserRightsFromAccessTypes(userJson.getRights()));
+       // userData.setUserRights(getUserRightsFromAccessTypes(userJson.getRights()));
 
         return userData;
     }
@@ -60,7 +58,7 @@ public class UserDataTransformer {
         userJson.setUserName(userData.getUserName());
         userJson.setUserId(userData.getUserId());
         userJson.setStatus(getDescriptionFromUserStatus(userData.getStatus()));
-        userJson.setRights(getAccessTypeFromUserRight(userData.getUserRights()));
+        //userJson.setRights(getAccessTypeFromUserRight(userData.getUserRights()));
 
         return userJson;
     }
@@ -89,11 +87,18 @@ public class UserDataTransformer {
         return staticDataLoader.getDescriptionFromUserStatus(userStatus);
     }
 
-    public List<UserRight> getUserRightsFromAccessTypes(List<String> rights) {
-        return staticDataLoader.getUserRightsFromAccessTypes(rights);
+    public Set<UserRole> getRoles(Collection<String> roles) {
+        return new HashSet<>(staticDataLoader.getRoles(roles));
     }
 
-    public List<String> getAccessTypeFromUserRight(List<UserRight> userRights) {
-        return staticDataLoader.getAccessTypesFromUserRights(userRights);
+    public Set<String> getRoleCodes(Collection<UserRole> userRoles) {
+        return new HashSet<>(staticDataLoader.getRoleCodes(userRoles));
+    }
+
+    public Set<String> getScopeNames(Collection<Scope> scopes) {
+        return new HashSet<>(staticDataLoader.fromScopes(scopes));
+    }
+    public Set<Scope> getScopes(Collection<String> scopeNames) {
+        return new HashSet<>(staticDataLoader.toScopes(scopeNames));
     }
 }
