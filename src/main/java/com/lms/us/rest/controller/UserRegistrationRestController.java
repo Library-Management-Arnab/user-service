@@ -10,6 +10,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,6 +32,7 @@ public class UserRegistrationRestController {
     @PostMapping(value = {"/register", "/register/"}, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Object> register(@RequestBody UserJson userJson) {
+        Assert.isTrue(userJson.getPassword().equals(userJson.getConfirmPassword()), "Password and Confirm Password do not match!!");
         return new ResponseEntity<>(userRegistrationService.register(userJson), HttpStatus.OK);
     }
 }
