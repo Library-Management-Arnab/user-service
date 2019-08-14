@@ -1,11 +1,10 @@
 package com.lms.us.rest.exception;
 
-import org.springframework.http.HttpStatus;
-
 import com.lms.svc.common.constants.ApplicationCommonConstants;
 import com.lms.svc.common.exception.ApplicationError;
+import org.springframework.http.HttpStatus;
 
-public class NoSuchUserException extends ApplicationError {
+public class NoApiDataException extends ApplicationError {
 
 	private static final long serialVersionUID = 8028858099788854844L;
 
@@ -13,8 +12,8 @@ public class NoSuchUserException extends ApplicationError {
 	private final int errorCode;
 	private final HttpStatus httpStatus;
 
-	public NoSuchUserException() {
-		super(ApplicationCommonConstants.NO_SUCH_USER_ERROR_MESSAGE);
+	public NoApiDataException(String userName) {
+		super(String.format("No API data present for user [%s]. Login failed!!", userName));
 		this.message = super.getMessage();
 		this.errorCode = ApplicationCommonConstants.NO_SUCH_USER_ERROR_CODE;
 		this.httpStatus = HttpStatus.NOT_FOUND;
@@ -29,7 +28,7 @@ public class NoSuchUserException extends ApplicationError {
 		return this.message;
 	}
 
-		@Override
+	@Override
 	public HttpStatus getHttpStatus() {
 		return this.httpStatus;
 	}

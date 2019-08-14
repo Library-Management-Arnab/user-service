@@ -1,30 +1,29 @@
 package com.lms.us.rest.service;
 
-import java.util.Optional;
-
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.stereotype.Service;
-
 import com.lms.svc.common.crypto.CryptographyUtil;
 import com.lms.svc.common.exception.InvalidCredentialsException;
 import com.lms.svc.common.model.AuthenticatedUser;
+import com.lms.us.rest.exception.NoApiDataException;
 import com.lms.us.rest.exception.NoSuchUserException;
+import com.lms.us.rest.model.auth.UserApiData;
 import com.lms.us.rest.model.db.LoginData;
 import com.lms.us.rest.model.db.UserData;
+import com.lms.us.rest.model.json.LoginDataJson;
 import com.lms.us.rest.model.json.LoginJson;
 import com.lms.us.rest.repository.LoginRepository;
-import com.lms.us.rest.repository.UserRegistrationRepository;
+import com.lms.us.rest.repository.UserApiDataRepository;
+import com.lms.us.rest.transformer.LoginDataTransformer;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
-public class LoginService implements UserDetailsService {
+@AllArgsConstructor
+public class LoginService  {
 	private LoginRepository loginRepository;
-	private UserRegistrationRepository userRepository;
-
-	public LoginService(LoginRepository loginRepository) {
-		this.loginRepository = loginRepository;
-	}
+	private UserApiDataRepository userApiDataRepository;
+	private LoginDataTransformer loginDataTransformer;
 
 	public AuthenticatedUser doLogin(LoginJson loginJson) {
 		Optional<LoginData> searchResult = loginRepository.findById(loginJson.getUserName());
@@ -43,32 +42,32 @@ public class LoginService implements UserDetailsService {
 		}
 		throw new InvalidCredentialsException();
 	}
-
-	public void updateLoginInfo(LoginData loginData) {
-		String secret = createSecret();
-
-		String encryptedPassword = CryptographyUtil.encrypt(loginData.getPassword(), secret);
-
-		loginData.setSecret(secret);
-		loginData.setPassword(encryptedPassword);
-	}
-	public String createSecret() {
-		return CryptographyUtil.generateSecret();
-	}
+    public LoginDataJson getLoginDataJson(String userName) {
+	    return loginDataTransformer.toLoginDataJson(getLoginData(userName));
+    }
+    public LoginData getLoginData(String userName) {
+        Optional<LoginData> found = loginRepository.findByUserName(userName);
+        if(found .isPresent()) {
+            return found.get();
+        }
+        throw new NoSuchUserException();
+    }
 	private AuthenticatedUser fromLoginData(LoginData loginData) {
 		AuthenticatedUser loginResponse = new AuthenticatedUser();
 		loginResponse.setUserName(loginData.getUserName());
 		loginResponse.setUserStatus(loginData.getStatus().getStatusCode());
-		
 		return loginResponse;
 	}
+	private UserApiData getApiData(LoginData loginData) {
+        UserData userData = new UserData();
+        userData.setUserId(loginData.getUserId());
 
-	@Override
-	public UserDetails loadUserByUsername(String userName) throws UsernameNotFoundException {
-		Optional<UserData> searchResult = userRepository.findByUserName(userName);
-		if (searchResult.isPresent()) {
-			return new com.lms.us.rest.model.auth.AuthenticatedUser(searchResult.get());
-		}
-		throw new NoSuchUserException();
-	}
+        Optional<UserApiData> foundApiData = userApiDataRepository.findByUserId(loginData.getUserId());
+
+        if(foundApiData.isPresent()) {
+            return foundApiData.get();
+        } else {
+            throw new NoApiDataException(loginData.getUserName());
+        }
+    }
 }

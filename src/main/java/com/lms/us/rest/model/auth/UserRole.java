@@ -1,10 +1,11 @@
-package com.lms.us.rest.model.db;
+package com.lms.us.rest.model.auth;
 
-import com.lms.us.rest.model.auth.UserAPIData;
 import lombok.Data;
 
-import javax.persistence.*;
-import java.util.List;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import java.util.Objects;
 
 @Data
@@ -25,11 +26,7 @@ public class UserRole {
 	@Column(name = "user_role_description", length = 200)
 	private String description;
 
-	@ManyToMany(cascade = CascadeType.ALL)
-	@JoinTable(name = "user_api_role_mapping",
-					joinColumns = @JoinColumn(name = "user_api_record_id"),
-					inverseJoinColumns = @JoinColumn(name = "user_role_id"))
-	private List<UserAPIData> users;
+//	private List<UserAPIData> userAPIDataList;
 
 	@Override
 	public boolean equals(Object o) {

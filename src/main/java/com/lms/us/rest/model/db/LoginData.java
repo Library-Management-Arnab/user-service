@@ -2,13 +2,11 @@ package com.lms.us.rest.model.db;
 
 import java.io.Serializable;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 
+import com.lms.svc.common.constants.ApplicationCommonConstants;
+import com.lms.svc.common.util.CommonUtil;
+import com.lms.us.rest.model.auth.UserApiData;
 import lombok.Data;
 
 @Data
@@ -17,11 +15,18 @@ import lombok.Data;
 public class LoginData implements Serializable {
 	private static final long serialVersionUID = -1873177848918732842L;
 
-	@Id
-	@Column(length = 12)
+	public LoginData() {
+        this.loginDataId = String.format("LOGIN%s", CommonUtil.generateId());
+    }
+
+    @Id
+    @Column(name = "login_data_id   ", length = 30)
+    private String loginDataId;
+
+	@Column(name = "user_name", length = 12)
 	private String userName;
 
-	@Column(nullable = false, length = 30)
+	@Column(name = "user_id", nullable = false, length = 30, unique = true)
 	private String userId;
 
 	@Column(nullable = false, length = 100)
@@ -37,7 +42,10 @@ public class LoginData implements Serializable {
 	@JoinColumn(name = "status_code", referencedColumnName = "status_code")
 	private UserStatus status;
 
-//	@OneToOne
-//	@JoinColumn(name = "user_right_code", referencedColumnName = "user_right_code")
-//	private List<UserRight> userRight;
+	@OneToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "user_api_data_id", referencedColumnName = "record_id")
+	private UserApiData userApiData;
+
+	@OneToOne(mappedBy = "loginData")
+	private UserData userData;
 }

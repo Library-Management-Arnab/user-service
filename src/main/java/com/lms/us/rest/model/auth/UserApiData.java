@@ -1,6 +1,8 @@
 package com.lms.us.rest.model.auth;
 
-import com.lms.us.rest.model.db.UserRole;
+import com.lms.svc.common.constants.ApplicationCommonConstants;
+import com.lms.svc.common.util.CommonUtil;
+import com.lms.us.rest.model.db.LoginData;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -10,13 +12,14 @@ import java.util.Set;
 @Data
 @Entity
 @Table(name = "user_api_data")
-public class UserAPIData implements Serializable {
+public class UserApiData implements Serializable {
     private static final long serialVersionUID = -92389423491923L;
 
-    public UserAPIData() {
+    public UserApiData() {
+        this.recordId = String.format("USRAPI%s", CommonUtil.generateId());
     }
 
-    public UserAPIData(UserAPIData another) {
+    public UserApiData(UserApiData another) {
         this.recordId = another.recordId;
         this.clientId = another.clientId;
         this.userId = another.userId;
@@ -46,9 +49,18 @@ public class UserAPIData implements Serializable {
     @Column(nullable = false)
     private Integer refreshTokenValiditySeconds;
 
-    @ManyToMany
+    @OneToOne(mappedBy = "userApiData")
+    private LoginData loginData;
+
+    @ManyToMany (cascade = CascadeType.ALL)
+    @JoinTable(name = "api_data_scope_mapping",
+            joinColumns = @JoinColumn(name = "api_record_id"),
+            inverseJoinColumns = @JoinColumn(name = "scope_id"))
     private Set<Scope> scopes;
 
-    @ManyToMany
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(name = "user_api_role_mapping",
+            joinColumns = @JoinColumn(name = "user_api_record_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_role_id"))
     private Set<UserRole> userRoles;
 }

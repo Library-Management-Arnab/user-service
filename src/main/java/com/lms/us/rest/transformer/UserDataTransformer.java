@@ -1,21 +1,17 @@
 package com.lms.us.rest.transformer;
 
-import com.lms.us.rest.config.StaticDataLoader;
-import com.lms.us.rest.model.auth.Scope;
 import com.lms.us.rest.model.db.UserData;
-import com.lms.us.rest.model.db.UserRole;
-import com.lms.us.rest.model.db.UserStatus;
 import com.lms.us.rest.model.json.UserJson;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @AllArgsConstructor
 public class UserDataTransformer {
-    private StaticDataLoader staticDataLoader;
-
+    private StaticDataTransformer staticDataTransformer;
     public UserData userJsonToUserData(UserJson userJson) {
         UserData userData = new UserData();
         
@@ -32,12 +28,7 @@ public class UserDataTransformer {
         userData.setLastUpdateDate(userJson.getLastUpdateDate());
         userData.setPin(userJson.getPin());
         userData.setRegistrationDate(userJson.getRegistrationDate());
-        
         userData.setUserName(userJson.getUserName());
-        
-        userData.setStatus(getUserStatusFromDescription(userJson.getStatus()));
-       // userData.setUserRights(getUserRightsFromAccessTypes(userJson.getRights()));
-
         return userData;
     }
 
@@ -57,48 +48,24 @@ public class UserDataTransformer {
 
         userJson.setUserName(userData.getUserName());
         userJson.setUserId(userData.getUserId());
-        userJson.setStatus(getDescriptionFromUserStatus(userData.getStatus()));
-        //userJson.setRights(getAccessTypeFromUserRight(userData.getUserRights()));
 
+        userJson.setStatus(staticDataTransformer.getDescriptionFromUserStatus(userData.getLoginData().getStatus()));
         return userJson;
     }
 
     public List<UserJson> userDataListToUserJsonList(List<UserData> userDataList) {
-        List<UserJson> userJsonList = new ArrayList<>();
-        userDataList.forEach(userData -> {
-            userJsonList.add(userDataToUserJson(userData));
-        });
-        return userJsonList;
+        return userDataList
+                        .stream()
+                        .map(this::userDataToUserJson)
+                        .collect(Collectors.toList());
     }
-
+/*
     public List<UserData> userJsonListToUserDataList(List<UserJson> userJsonList) {
-        List<UserData> userDataList = new ArrayList<>();
-        userJsonList.forEach(userJson -> {
-            userDataList.add(userJsonToUserData(userJson));
-        });
-        return userDataList;
-    }
+        return userJsonList
+                        .stream()
+                        .map(this::userJsonToUserData)
+                        .collect(Collectors.toList());
 
-    public UserStatus getUserStatusFromDescription(String description) {
-        return staticDataLoader.getUserStatusFromDescription(description);
     }
-
-    public String getDescriptionFromUserStatus(UserStatus userStatus) {
-        return staticDataLoader.getDescriptionFromUserStatus(userStatus);
-    }
-
-    public Set<UserRole> getRoles(Collection<String> roles) {
-        return new HashSet<>(staticDataLoader.getRoles(roles));
-    }
-
-    public Set<String> getRoleCodes(Collection<UserRole> userRoles) {
-        return new HashSet<>(staticDataLoader.getRoleCodes(userRoles));
-    }
-
-    public Set<String> getScopeNames(Collection<Scope> scopes) {
-        return new HashSet<>(staticDataLoader.fromScopes(scopes));
-    }
-    public Set<Scope> getScopes(Collection<String> scopeNames) {
-        return new HashSet<>(staticDataLoader.toScopes(scopeNames));
-    }
+    */
 }

@@ -1,10 +1,12 @@
 package com.lms.us.rest.service;
 
 import com.lms.svc.common.constants.ApplicationCommonConstants;
+import com.lms.svc.common.util.CommonUtil;
 import com.lms.us.rest.exception.NoSuchUserException;
 import com.lms.us.rest.model.db.UserData;
 import com.lms.us.rest.model.json.UserJson;
 import com.lms.us.rest.repository.UserRegistrationRepository;
+import com.lms.us.rest.transformer.StaticDataTransformer;
 import com.lms.us.rest.transformer.UserDataTransformer;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,8 +18,8 @@ import java.util.Optional;
 @AllArgsConstructor
 public class UserService {
     private UserRegistrationRepository userRegistrationRepository;
-    private LoginService loginService;
     private UserDataTransformer userDataTransformer;
+    private StaticDataTransformer staticDataTransformer;
 
     public List<UserJson> getAllUsers() {
         List<UserData> allUsers = userRegistrationRepository.findAll();
@@ -35,8 +37,8 @@ public class UserService {
     }
     public void deleteUser(String userId) {
         UserData user = searchUserById(userId);
-        user.setStatus(userDataTransformer.getUserStatusFromDescription(ApplicationCommonConstants.USER_STATUS_CODE_DELETED));
-        user.setLastUpdateDate(ApplicationCommonConstants.getCurrentDateAsString());
+        user.getLoginData().setStatus(staticDataTransformer.getUserStatusFromDescription(ApplicationCommonConstants.USER_STATUS_CODE_DELETED));
+        user.setLastUpdateDate(CommonUtil.getCurrentDateAsString());
         userRegistrationRepository.save(user);
     }
 
@@ -49,7 +51,7 @@ public class UserService {
         input.setUserId(existing.getUserId());
 
         // Basic user cannot update its own status
-        input.setStatus(existing.getStatus());
+        input.getLoginData().setStatus(existing.getLoginData().getStatus());
 
         // Basic user cannot update its own rights
         //input.setUserRights(existing.getUserRights());
@@ -57,7 +59,7 @@ public class UserService {
         // Registration date is unchangeable
         input.setRegistrationDate(existing.getRegistrationDate());
 
-        input.setLastUpdateDate(ApplicationCommonConstants.getCurrentDateAsString());
+        input.setLastUpdateDate(CommonUtil.getCurrentDateAsString());
 
         UserData updatedUser = userRegistrationRepository.save(input);
 
@@ -72,7 +74,7 @@ public class UserService {
 
         // Registration date is unchangeable
         input.setRegistrationDate(existing.getRegistrationDate());
-        input.setLastUpdateDate(ApplicationCommonConstants.getCurrentDateAsString());
+        input.setLastUpdateDate(CommonUtil.getCurrentDateAsString());
 
         UserData updatedUser = userRegistrationRepository.save(input);
         return userDataTransformer.userDataToUserJson(updatedUser);
@@ -96,7 +98,7 @@ public class UserService {
         }
         throw new NoSuchUserException();
     }
-    UserData searchByUsername(String userName) {
+    public UserData searchByUsername(String userName) {
         Optional<UserData> searchResult = userRegistrationRepository.findByUserName(userName);
         return searchResult.isPresent() ? searchResult.get() : null;
     }

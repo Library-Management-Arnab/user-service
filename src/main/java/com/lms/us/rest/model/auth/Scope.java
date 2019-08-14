@@ -1,19 +1,20 @@
 package com.lms.us.rest.model.auth;
 
-import com.lms.svc.common.constants.ApplicationCommonConstants;
+import com.lms.svc.common.util.CommonUtil;
 import lombok.Data;
 
-import javax.persistence.*;
-import java.util.List;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import java.util.Objects;
-import java.util.Set;
 
 @Data
 @Entity
 @Table(name="auth_scope")
 public class Scope {
     public Scope() {
-        this.scopeId = String.format("SCO%s", ApplicationCommonConstants.generateId());
+        this.scopeId = String.format("SCO%s", CommonUtil.generateId());
     }
     @Id
     @Column(length = 30)
@@ -22,11 +23,7 @@ public class Scope {
     @Column(length = 40, nullable = false)
     private String scopeName;
 
-    @ManyToMany(cascade = CascadeType.ALL)
-    @JoinTable(name = "api_data_scope_mapping",
-            joinColumns = @JoinColumn(name = "api_record_id"),
-            inverseJoinColumns = @JoinColumn(name = "scope_id"))
-    private Set<UserAPIData> userAPIDataList;
+//    private Set<UserAPIData> userAPIDataList;
 
     @Override
     public boolean equals(Object o) {

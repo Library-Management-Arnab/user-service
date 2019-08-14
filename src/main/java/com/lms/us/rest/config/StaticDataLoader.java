@@ -1,9 +1,9 @@
 package com.lms.us.rest.config;
 
 import com.lms.svc.common.config.BaseDataLoader;
-import com.lms.svc.common.constants.ApplicationCommonConstants;
+import com.lms.svc.common.util.CommonUtil;
 import com.lms.us.rest.model.auth.Scope;
-import com.lms.us.rest.model.db.UserRole;
+import com.lms.us.rest.model.auth.UserRole;
 import com.lms.us.rest.model.db.UserStatus;
 import com.lms.us.rest.repository.ScopeRepository;
 import com.lms.us.rest.repository.UserRoleRepository;
@@ -46,9 +46,9 @@ public class StaticDataLoader extends BaseDataLoader {
         userStatuses = userStatusRepository.findAll();
         allScopes = scopeRepository.findAll();
 
-        allRoles = ApplicationCommonConstants.toCollection(userRoles, UserRole::getRoleCode);
-        allStatuses = ApplicationCommonConstants.toCollection(userStatuses, UserStatus::getStatusDescription);
-        allScopeNames = ApplicationCommonConstants.toCollection(allScopes, Scope::getScopeName);
+        allRoles = CommonUtil.toCollection(userRoles, UserRole::getRoleCode);
+        allStatuses = CommonUtil.toCollection(userStatuses, UserStatus::getStatusDescription);
+        allScopeNames = CommonUtil.toCollection(allScopes, Scope::getScopeName);
     }
 
     public Collection<UserRole> getRoles(Collection<String> roleCodes) {
