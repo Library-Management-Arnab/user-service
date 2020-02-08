@@ -1,22 +1,10 @@
 package com.lms.us.rest.model.db;
 
-import java.io.Serializable;
-
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
-import javax.persistence.Transient;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonProperty.Access;
-import com.lms.svc.common.constants.ApplicationCommonConstants;
-
+import com.lms.svc.common.util.CommonUtil;
 import lombok.Data;
+
+import javax.persistence.*;
+import java.io.Serializable;
 
 @Data
 @Entity
@@ -24,11 +12,28 @@ import lombok.Data;
 public class UserData implements Serializable {
 	private static final long serialVersionUID = -1897451298385075865L;
 	public UserData() {
-		this.setUserId("U" + ApplicationCommonConstants.generateId());
+		this.setUserId("U" + CommonUtil.generateId());
+		this.loginData = new LoginData();
 	}
 	
+	public UserData(UserData userData) {
+		this.address1 = userData.address1;
+		this.address2 = userData.address2;
+		this.contactNo = userData.contactNo;
+		this.displayName = userData.displayName;
+		this.email = userData.email;
+		this.firstName = userData.firstName;
+		this.lastName = userData.lastName;
+		this.lastUpdateDate = userData.lastUpdateDate;
+		this.pin = userData.pin;
+		this.registrationDate = userData.registrationDate;
+		this.userName = userData.userName;
+		this.userId = userData.userId;
+		this.loginData = userData.loginData;
+	}
+
 	@Id
-	@Column(length = 30)
+	@Column(unique = true, nullable = false, length = 30, updatable = false)
 	private String userId;
 
 	@Column(unique = true, nullable = false, length = 12, updatable = false)
@@ -36,12 +41,10 @@ public class UserData implements Serializable {
 	
 	// This field is not mapped to a column
 	@Transient
-	@JsonProperty(access = Access.WRITE_ONLY)
 	private String password;
 	
 	// This field is not mapped to a column
 	@Transient
-	@JsonProperty(access = Access.WRITE_ONLY)
 	private String confirmPassword;
 
 	@Column(nullable = false, length = 30, unique = true)
@@ -62,7 +65,7 @@ public class UserData implements Serializable {
 	@Column(nullable = false, length = 30)
 	private String address1;
 
-	@Column(nullable = true, length = 30)
+	@Column(length = 30)
 	private String address2;
 
 	@Column(nullable = false, length = 6)
@@ -74,16 +77,7 @@ public class UserData implements Serializable {
 	@Column(nullable = false, length = 30)
 	private String displayName;
 
-	@JsonIgnore
 	@OneToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "user_id", referencedColumnName = "user_id")
+	@JoinColumn(name = "login_data_id", referencedColumnName = "login_data_id", nullable = false)
 	private LoginData loginData;
-	
-	@OneToOne
-	@JoinColumn(name="user_right_code", referencedColumnName="user_right_code")
-	private UserRight userRight;
-	
-	@OneToOne
-	@JoinColumn(name="status_code", referencedColumnName="status_code")
-	private UserStatus status;
 }

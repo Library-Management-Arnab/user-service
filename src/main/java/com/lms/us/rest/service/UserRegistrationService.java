@@ -1,149 +1,105 @@
 package com.lms.us.rest.service;
 
 import com.lms.svc.common.constants.ApplicationCommonConstants;
+import com.lms.svc.common.crypto.CryptographyUtil;
+import com.lms.svc.common.util.CommonUtil;
 import com.lms.us.rest.exception.DuplicateUserException;
-import com.lms.us.rest.exception.NoSuchUserException;
+import com.lms.us.rest.model.auth.UserApiData;
 import com.lms.us.rest.model.db.LoginData;
 import com.lms.us.rest.model.db.UserData;
 import com.lms.us.rest.model.json.UserJson;
 import com.lms.us.rest.repository.UserRegistrationRepository;
+import com.lms.us.rest.transformer.StaticDataTransformer;
 import com.lms.us.rest.transformer.UserDataTransformer;
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.Arrays;
 
 @Service
 @AllArgsConstructor
 public class UserRegistrationService {
-	private UserRegistrationRepository userRegistrationRepository;
-	private LoginService loginService;
-	private UserDataTransformer userDataTransformer;
+    private LoginService loginService;
+    private UserService userService;
+    private UserDataTransformer userDataTransformer;
+    private UserRegistrationRepository userRegistrationRepository;
+    private StaticDataTransformer staticDataTransformer;
 
+    @Transactional(propagation = Propagation.REQUIRED)
+    public UserJson register(UserJson userJson) {
+        validateDuplicateUser(userJson.getUserName());
+        String currentDate = CommonUtil.getCurrentDateAsString();
+        userJson.setRegistrationDate(currentDate);
+        userJson.setLastUpdateDate(currentDate);
 
-	public List<UserJson> getAllUsers() {
-		List<UserData> allUsers = userRegistrationRepository.findAll();
-		return userDataTransformer.userDataListToUserJsonList(allUsers);
-	}
+        UserData registrationData = userDataTransformer.userJsonToUserData(userJson);
 
-	public UserJson getUserById(String userId) {
-		UserData foundUser = searchAndValidateByUserId(userId);
-		return userDataTransformer.userDataToUserJson(foundUser);
-	}
-	
-	public UserJson getByUserName(String userName) {
-		UserData foundUser = searchAndValidateByUserName(userName);
-		return userDataTransformer.userDataToUserJson(foundUser);
-	}
+        LoginData loginData = extractLoginData(registrationData);
+        registrationData.setLoginData(loginData);
 
-	@Transactional(propagation = Propagation.REQUIRED, readOnly = false)
-	public UserJson register(UserJson userJson) {
-		validateDuplicateUser(userJson.getUserName());
-		String currentDate = ApplicationCommonConstants.getCurrentDateAsString();
-		userJson.setRegistrationDate(currentDate);
-		userJson.setLastUpdateDate(currentDate);
-		userJson.setStatus(ApplicationCommonConstants.USER_STATUS_ACTIVE);
+        UserData registeredUser = userRegistrationRepository.save(registrationData);
+        return userDataTransformer.userDataToUserJson(registeredUser);
+    }
 
-		// TODO - to be separated for admin and user later
-		userJson.setRight(ApplicationCommonConstants.USER_RIGHT_BASIC);
-		
-		UserData registrationData = userDataTransformer.userJsonToUserData(userJson);
+    private void validateDuplicateUser(String userName) {
+        UserData found = userService.searchByUsername(userName);
+        if (found != null && found.getUserId() != null) {
+            throw new DuplicateUserException(userName);
+        }
+    }
 
-		LoginData loginData = extractLoginData(registrationData);
-		loginData.setStatus(registrationData.getStatus());
-		
-		loginService.updateLoginInfo(loginData);
-		registrationData.setLoginData(loginData);
-		
-		UserData registeredUser = userRegistrationRepository.save(registrationData);
-		return userDataTransformer.userDataToUserJson(registeredUser);
-	}
+    private LoginData extractLoginData(UserData userData) {
+        LoginData loginData = userData.getLoginData();
+        loginData.setUserName(userData.getUserName());
+        loginData.setPassword(userData.getPassword());
+        loginData.setFullName(buildFullName(userData.getFirstName(), userData.getLastName()));
+        loginData.setUserId(userData.getUserId());
 
-	public void deleteUser(String userId) {
-		UserData user = searchUserById(userId);
-		user.setStatus(userDataTransformer.getUserStatusFromDescription(ApplicationCommonConstants.USER_STATUS_CODE_DELETED));
-		user.setLastUpdateDate(ApplicationCommonConstants.getCurrentDateAsString());
-		userRegistrationRepository.save(user);
-	}
+        setEncryptedPassword(loginData);
 
-	public UserJson updateUserAsSelf(String userId, UserJson userJson) {
-		UserData existing = searchUserById(userId);
+        loginData.setStatus(staticDataTransformer.getUserStatusFromDescription(ApplicationCommonConstants.USER_STATUS_ACTIVE));
 
-		UserData input = userDataTransformer.userJsonToUserData(userJson);
-		
-		//Restoring the existing userId
-		input.setUserId(existing.getUserId());
-		
-		// Basic user cannot update its own status
-		input.setStatus(existing.getStatus());
+        updateUserApiData(loginData);
+        return loginData;
+    }
+    private String buildFullName(String firstName, String lastName) {
+        StringBuilder sb = new StringBuilder();
+        if(!StringUtils.isEmpty(firstName)) {
+            sb.append(firstName);
+        }
+        if(!StringUtils.isEmpty(lastName)) {
+            sb.append(" ");
+            sb.append(lastName);
+        }
+        return sb.toString();
+    }
 
-		// Basic user cannot update its own rights
-		input.setUserRight(existing.getUserRight());
+    private void setEncryptedPassword(LoginData loginData) {
+        String secret = CryptographyUtil.createSecret();
 
-		// Registration date is unchangeable
-		input.setRegistrationDate(existing.getRegistrationDate());
+        String encryptedPassword = CryptographyUtil.encrypt(loginData.getPassword(), secret);
 
-		input.setLastUpdateDate(ApplicationCommonConstants.getCurrentDateAsString());
+        loginData.setSecret(secret);
+        loginData.setPassword(encryptedPassword);
+    }
 
-		UserData updatedUser = userRegistrationRepository.save(input);
+    private void updateUserApiData(LoginData loginData) {
+        UserApiData userAPIData = new UserApiData();
+        userAPIData.setUserId(loginData.getUserId());
+        userAPIData.setClientId(String.format("%s%s",RandomStringUtils.randomAlphanumeric(5).toUpperCase(), loginData.getUserName().toUpperCase()));
+        userAPIData.setSecret(CryptographyUtil.createSecret());
 
-		return userDataTransformer.userDataToUserJson(updatedUser);
-	}
-	
-	// TODO - To be added later
-	public UserJson updateUserAsAdmin(String userId, UserJson userJson) {
-		UserData existing = searchUserById(userId);
+        userAPIData.setAccessTokenValiditySeconds(ApplicationCommonConstants.DEFAULT_ACCESS_TOKEN_VALIDITY_SECONDS);
+        userAPIData.setRefreshTokenValiditySeconds(ApplicationCommonConstants.DEFAULT_REFRESH_TOKEN_VALIDITY_SECONDS);
 
-		UserData input = userDataTransformer.userJsonToUserData(userJson);
+        userAPIData.setUserRoles(staticDataTransformer.getRoles(Arrays.asList(ApplicationCommonConstants.USER_ROLE_BASIC)));
+        userAPIData.setScopes(staticDataTransformer.getScopes(Arrays.asList(ApplicationCommonConstants.SCOPE_READ_ONLY)));
 
-		// Registration date is unchangeable
-		input.setRegistrationDate(existing.getRegistrationDate());
-		input.setLastUpdateDate(ApplicationCommonConstants.getCurrentDateAsString());
+        loginData.setUserApiData(userAPIData);
+    }
 
-		UserData updatedUser = userRegistrationRepository.save(input);
-		return userDataTransformer.userDataToUserJson(updatedUser);
-	}
-
-	private UserData searchUserById(String userId) {
-		Optional<UserData> searchResult = userRegistrationRepository.findById(userId);
-		return searchResult.isPresent() ? searchResult.get() : null;
-	}
-	private UserData searchAndValidateByUserId(String userId) {
-		UserData foundUser = searchUserById(userId);
-		if (foundUser != null) {
-			return foundUser;
-		}
-		throw new NoSuchUserException();
-	}
-	private UserData searchAndValidateByUserName(String userName) {
-		UserData foundUser = searchByUsername(userName);
-		if (foundUser != null) {
-			return foundUser;
-		}
-		throw new NoSuchUserException();
-	}
-	private UserData searchByUsername(String userName) {
-		Optional<UserData> searchResult = userRegistrationRepository.findByUserName(userName);
-		return searchResult.isPresent() ? searchResult.get() : null;
-	}
-	
-	private void validateDuplicateUser(String userName) {
-		UserData found = searchByUsername(userName);
-		if(found != null && found.getUserId() != null) {
-			throw new DuplicateUserException(userName);
-		}
-	}
-	
-	private LoginData extractLoginData(UserData userData) {
-		LoginData loginData = new LoginData();
-		loginData.setUserName(userData.getUserName());
-		loginData.setPassword(userData.getPassword());
-		loginData.setUserId(userData.getUserId());
-		loginData.setStatus(userData.getStatus());
-		loginData.setUserRight(userData.getUserRight());
-		return loginData;
-	}
 }

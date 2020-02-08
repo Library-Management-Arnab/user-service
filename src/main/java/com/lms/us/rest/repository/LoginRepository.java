@@ -5,7 +5,9 @@ import org.springframework.stereotype.Repository;
 
 import com.lms.us.rest.model.db.LoginData;
 
+import java.util.Optional;
+
 @Repository
 public interface LoginRepository extends JpaRepository<LoginData, String>{
-
+    Optional<LoginData> findByUserName(String userName);
 }
